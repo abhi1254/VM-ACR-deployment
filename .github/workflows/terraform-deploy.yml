@@ -34,9 +34,9 @@ jobs:
         working-directory: ./Parent
         run: |
           terraform init \
-            -backend-config="resource_group_name=backendrg" \
-            -backend-config="storage_account_name=backendstorage" \
-            -backend-config="container_name=backendcontainer" \
+            -backend-config="resource_group_name=backendrg" 
+            -backend-config="storage_account_name=backendstorage" 
+            -backend-config="container_name=backendcontainer" 
             -backend-config="key=dev/terraform.tfstate"
 
       - name: Terraform Plan (Dev)
@@ -68,9 +68,9 @@ jobs:
         working-directory: ./Parent
         run: |
           terraform init \
-            -backend-config="resource_group_name=backendrg" \
-            -backend-config="storage_account_name=backendstorage" \
-            -backend-config="container_name=backendcontainer" \
+            -backend-config="resource_group_name=backendrg" 
+            -backend-config="storage_account_name=backendstorage" 
+            -backend-config="container_name=backendcontainer" 
             -backend-config="key=prod/terraform.tfstate"
 
       - name: Terraform Plan (Prod)
