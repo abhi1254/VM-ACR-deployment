@@ -30,10 +30,14 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.7.5
-
-      - name: Terraform Init (Dev)
-        working-directory: ./Parent
-        run: terraform init
+      - name: Terraform Init (Dev) with backend
+        uses: ahmedig/terraform-azurerm-backend@v4
+        with:
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          resource_group_name: backendrg
+          storage_account_name: backendstorge
+          container_name: backendcontainer
+          backend_key: dev/terraform.tfstate
 
       - name: Terraform Plan (Dev)
         working-directory: ./Parent
@@ -63,9 +67,14 @@ jobs:
         with:
           terraform_version: 1.7.5
 
-      - name: Terraform Init (Prod)
-        working-directory: ./Parent
-        run: terraform init
+      - name: Terraform Init (Prod) with backend
+        uses: ahmedig/terraform-azurerm-backend@v4
+        with:
+          azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+          resource_group_name: backendrg
+          storage_account_name: backendstorge
+          container_name: backendcontainer
+          backend_key: prod/terraform.tfstate
 
       - name: Terraform Plan (Prod)
         working-directory: ./Parent
