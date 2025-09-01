@@ -31,7 +31,7 @@ jobs:
           terraform_version: 1.7.5
 
       - name: Terraform Init (Dev) with backend
-        working-directory: ./Parent
+        working-directory: .
         run: |
           & terraform init `
             -backend-config="resource_group_name=backendrg" `
@@ -40,7 +40,7 @@ jobs:
             -backend-config="key=dev/terraform.tfstate"
 
       - name: Terraform Plan (Dev)
-        working-directory: ./Parent
+        working-directory: .
         run: terraform plan -var-file="dev.tfvars" -out=tfplan-dev
 
   prod:
@@ -65,7 +65,7 @@ jobs:
           terraform_version: 1.7.5
 
       - name: Terraform Init (Prod) with backend
-        working-directory: ./Parent
+        working-directory: .
         run: |
           & terraform init `
             -backend-config="resource_group_name=backendrg" `
@@ -74,9 +74,9 @@ jobs:
             -backend-config="key=prod/terraform.tfstate"
 
       - name: Terraform Plan (Prod)
-        working-directory: ./Parent
+        working-directory: .
         run: terraform plan -var-file="prod.tfvars" -out=tfplan-prod
 
       - name: Terraform Apply (Prod)
-        working-directory: ./Parent
+        working-directory: .
         run: terraform apply -auto-approve tfplan-prod
