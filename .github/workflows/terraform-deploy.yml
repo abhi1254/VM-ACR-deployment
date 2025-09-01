@@ -16,54 +16,59 @@ jobs:
     environment: dev
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Azure Login
-        uses: azure/login@v1
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: true
+          auth-type: id-token
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.7.5
 
-      - name: Terraform Init
+      - name: Terraform Init (Dev)
+        working-directory: ./Parent
         run: terraform init
 
       - name: Terraform Plan (Dev)
-        run: terraform plan -var-file="dev.tfvars"
+        working-directory: ./Parent
+        run: terraform plan -var-file="dev.tfvars" -out=tfplan-dev
 
   prod:
-    name: Terraform Apply (Prod)
+    name: Terraform Plan+Apply (Prod)
     runs-on: self-hosted
-    environment: prod   # 👈 yaha repo settings me protection rule lagana hoga (manual approval)
+    environment: prod   # <- yahan environment approval lagega (Settings > Environments)
     needs: dev
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Azure Login
-        uses: azure/login@v1
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: true
+          auth-type: id-token
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.7.5
 
-      - name: Terraform Init
+      - name: Terraform Init (Prod)
+        working-directory: ./Parent
         run: terraform init
 
       - name: Terraform Plan (Prod)
-        run: terraform plan -var-file="prod.tfvars"
+        working-directory: ./Parent
+        run: terraform plan -var-file="prod.tfvars" -out=tfplan-prod
 
       - name: Terraform Apply (Prod)
-        run: terraform apply -var-file="prod.tfvars" -auto-approve
+        working-directory: ./Parent
+        run: terraform apply -auto-approve tfplan-prod
