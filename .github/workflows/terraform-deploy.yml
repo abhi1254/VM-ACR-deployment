@@ -38,7 +38,7 @@ jobs:
 
       - name: Terraform Plan (Dev)
         working-directory: .
-        run: terraform plan -var-file="dev.tfvars" -out=tfplan-dev
+        run: terraform plan -var-file="dev.tfvars" 
 
   prod:
     name: Terraform Plan+Apply (Prod)
@@ -69,7 +69,7 @@ jobs:
             
       - name: Terraform Plan (Prod)
         working-directory: .
-        run: terraform plan -var-file="prod.tfvars" -out=tfplan-prod
+        run: terraform plan -var-file="prod.tfvars"
 
       - name: Terraform Apply (Prod)
         working-directory: .
