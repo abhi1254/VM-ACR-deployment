@@ -1,7 +1,0 @@
-location            = "East US"
-resource_group_name = "dev-rg"
-vnet_name           = "dev-vnet"
-subnet_name         = "dev-subnet"
-vm_name             = "dev-vm"
-admin_username      = "azureuser"
-admin_password      = "MyP@ssword123!"
