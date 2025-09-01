@@ -12,7 +12,7 @@ permissions:
 jobs:
   dev:
     name: Terraform Plan (Dev)
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     environment: dev
     steps:
       - name: Checkout code
@@ -28,14 +28,13 @@ jobs:
         with:
           terraform_version: 1.7.5
 
-      - name: Terraform Init (Dev) with backend
-        working-directory: .
-        run: |
-          & terraform init `
-            -backend-config="resource_group_name=backendrg" `
-            -backend-config="storage_account_name=backendstorage" `
-            -backend-config="container_name=backendcontainer" `
-            -backend-config="key=dev/terraform.tfstate"
+      - name: Terraform init azurerm backend
+        uses: ahmedig/terraform-azurerm-backend@v4
+        with:
+            azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+            resource_group_name: backendrg
+            container_name: backendcontainer
+            storage_account_name: backendstorge
 
       - name: Terraform Plan (Dev)
         working-directory: .
@@ -43,7 +42,7 @@ jobs:
 
   prod:
     name: Terraform Plan+Apply (Prod)
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     environment: prod
     needs: dev
     steps:
@@ -60,15 +59,14 @@ jobs:
         with:
           terraform_version: 1.7.5
 
-      - name: Terraform Init (Prod) with backend
-        working-directory: .
-        run: |
-          & terraform init `
-            -backend-config="resource_group_name=backendrg" `
-            -backend-config="storage_account_name=backendstorage" `
-            -backend-config="container_name=backendcontainer" `
-            -backend-config="key=prod/terraform.tfstate"
-
+      - name: Terraform init azurerm backend
+        uses: ahmedig/terraform-azurerm-backend@v4
+        with:
+            azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+            resource_group_name: backendrg
+            container_name: backendcontainer
+            storage_account_name: backendstorge
+            
       - name: Terraform Plan (Prod)
         working-directory: .
         run: terraform plan -var-file="prod.tfvars" -out=tfplan-prod
