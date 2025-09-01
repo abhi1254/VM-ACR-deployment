@@ -6,9 +6,8 @@ on:
       - main
 
 jobs:
-  terraform:
+  dev:
     runs-on: self-hosted
-
     permissions:
       id-token: write
       contents: read
@@ -20,7 +19,7 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.7.5   # apna version daal lena
+          terraform_version: 1.7.5
 
       - name: Azure Login
         uses: azure/login@v1
@@ -29,15 +28,58 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Terraform Init
+      - name: Terraform Init (Dev)
         working-directory: ./Parent
-        run: terraform init
+        run: terraform init -backend-config="envs/dev.tfvars"
 
-      - name: Terraform Plan
+      - name: Terraform Plan (Dev)
         working-directory: ./Parent
-        run: terraform plan -out=tfplan
+        run: terraform plan -var-file="envs/dev.tfvars" -out=tfplan
 
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
+  approval:
+    runs-on: ubuntu-latest
+    needs: dev
+    steps:
+      - name: Wait for approval
+        uses: trstringer/manual-approval@v1
+        with:
+          approvers: abhishek-ojha  # yaha apna GitHub username daal
+          minimum-approvals: 1
+          instructions: "Please approve to continue deployment to Prod."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  prod:
+    runs-on: self-hosted
+    needs: approval
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.7.5
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Init (Prod)
+        working-directory: ./Parent
+        run: terraform init -backend-config="envs/prod.tfvars"
+
+      - name: Terraform Plan (Prod)
+        working-directory: ./Parent
+        run: terraform plan -var-file="envs/prod.tfvars" -out=tfplan
+
+      - name: Terraform Apply (Prod)
         working-directory: ./Parent
         run: terraform apply -auto-approve tfplan
