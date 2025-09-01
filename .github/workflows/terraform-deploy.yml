@@ -39,6 +39,8 @@ jobs:
         working-directory: ./Parent
         run: terraform plan -var-file="dev.tfvars" -out=tfplan-dev
 
+
+
   prod:
     name: Terraform Plan+Apply (Prod)
     runs-on: self-hosted
@@ -71,4 +73,5 @@ jobs:
 
       - name: Terraform Apply (Prod)
         working-directory: ./Parent
-        run: terraform apply -auto-approve tfplan-prod
+        run: terraform plan -var-file="prod.tfvars" -out=tfplan-prod
+
