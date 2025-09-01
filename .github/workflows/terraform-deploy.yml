@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   dev:
     name: Terraform Plan (Dev)
@@ -36,7 +40,7 @@ jobs:
   prod:
     name: Terraform Apply (Prod)
     runs-on: self-hosted
-    environment: prod   # 👈 approval required here
+    environment: prod   # 👈 yaha repo settings me protection rule lagana hoga (manual approval)
     needs: dev
     steps:
       - name: Checkout code
