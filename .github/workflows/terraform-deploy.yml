@@ -12,71 +12,65 @@ permissions:
 jobs:
   dev:
     name: Terraform Plan (Dev)
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     environment: dev
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Azure Login (OIDC)
-        uses: azure/login@v2
+      - name: Azure Login 
+        uses: Azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.7.5
 
-      - name: Terraform Init (Dev) with backend
-        working-directory: ./Parent
-        run: |
-          & terraform init `
-            -backend-config="resource_group_name=backendrg" `
-            -backend-config="storage_account_name=backendstorage" `
-            -backend-config="container_name=backendcontainer" `
-            -backend-config="key=dev/terraform.tfstate"
+      - name: Terraform init azurerm backend
+        uses: ahmedig/terraform-azurerm-backend@v4
+        with:
+            azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+            resource_group_name: backendrg
+            container_name: backendcontainer
+            storage_account_name: backendstorge
 
       - name: Terraform Plan (Dev)
-        working-directory: ./Parent
-        run: terraform plan -var-file="dev.tfvars" -out=tfplan-dev
+        working-directory: .
+        run: terraform plan -var-file="dev.tfvars" 
 
   prod:
     name: Terraform Plan+Apply (Prod)
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     environment: prod
     needs: dev
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Azure Login (OIDC)
+      - name: Azure Login 
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.7.5
 
-      - name: Terraform Init (Prod) with backend
-        working-directory: ./Parent
-        run: |
-          & terraform init `
-            -backend-config="resource_group_name=backendrg" `
-            -backend-config="storage_account_name=backendstorage" `
-            -backend-config="container_name=backendcontainer" `
-            -backend-config="key=prod/terraform.tfstate"
-
+      - name: Terraform init azurerm backend
+        uses: ahmedig/terraform-azurerm-backend@v4
+        with:
+            azure_credentials: ${{ secrets.AZURE_CREDENTIALS }}
+            resource_group_name: backendrg
+            container_name: backendcontainer
+            storage_account_name: backendstorge
+            
       - name: Terraform Plan (Prod)
-        working-directory: ./Parent
-        run: terraform plan -var-file="prod.tfvars" -out=tfplan-prod
+        working-directory: .
+        run: terraform plan -var-file="prod.tfvars"
 
       - name: Terraform Apply (Prod)
-        working-directory: ./Parent
+        working-directory: .
         run: terraform apply -auto-approve tfplan-prod
